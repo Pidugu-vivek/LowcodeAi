@@ -1,0 +1,58 @@
+{
+  "id": "validate-aadhaar",
+  "version": 1,
+  "method": "POST",
+  "path": "/validate-aadhaar",
+  "description": "Example 2: Validate Aadhaar via Vendor A; if successful, fetch profile from Vendor B and merge responses.",
+  "auth": { "type": "none" },
+  "request": {
+    "schema": {
+      "type": "object",
+      "required": ["aadhaar"],
+      "properties": {
+        "aadhaar": { "type": "string", "pattern": "^[0-9]{12}$" }
+      }
+    }
+  },
+  "steps": [
+    {
+      "name": "validateAadhaar",
+      "type": "http",
+      "vendor": {
+        "baseUrl": "${SELF_BASE_URL}",
+        "method": "POST",
+        "path": "/mock/vendor-a/validate-aadhaar",
+        "timeoutMs": 3000,
+        "retry": { "attempts": 3, "backoffMs": 200 }
+      },
+      "requestMapping": [{ "from": "body.aadhaar", "to": "aadhaar" }],
+      "responseMapping": [{ "from": "body.status", "to": "aadhaarStatus" }]
+    },
+    {
+      "name": "fetchProfile",
+      "type": "http",
+      "condition": { "field": "steps.validateAadhaar.aadhaarStatus", "equals": "VALID" },
+      "vendor": {
+        "baseUrl": "${SELF_BASE_URL}",
+        "method": "POST",
+        "path": "/mock/vendor-b/profile",
+        "timeoutMs": 3000,
+        "retry": { "attempts": 2, "backoffMs": 200 }
+      },
+      "requestMapping": [{ "from": "body.aadhaar", "to": "aadhaar" }],
+      "responseMapping": [
+        { "from": "body.name", "to": "name" },
+        { "from": "body.dob", "to": "dob" },
+        { "from": "body.address", "to": "address" }
+      ]
+    }
+  ],
+  "response": {
+    "mapping": [
+      { "from": "steps.validateAadhaar.aadhaarStatus", "to": "aadhaarStatus" },
+      { "from": "steps.fetchProfile.name", "to": "profile.name" },
+      { "from": "steps.fetchProfile.dob", "to": "profile.dob" },
+      { "from": "steps.fetchProfile.address", "to": "profile.address" }
+    ]
+  }
+}

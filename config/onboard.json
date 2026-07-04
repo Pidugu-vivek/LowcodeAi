@@ -1,0 +1,77 @@
+{
+  "id": "onboard",
+  "version": 1,
+  "method": "POST",
+  "path": "/onboard",
+  "description": "Example 3: Upload document -> OCR extract -> fraud check -> face match -> aggregate result.",
+  "auth": { "type": "none" },
+  "request": {
+    "schema": {
+      "type": "object",
+      "required": ["documentId"],
+      "properties": {
+        "documentId": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "steps": [
+    {
+      "name": "ocr",
+      "type": "http",
+      "vendor": {
+        "baseUrl": "${SELF_BASE_URL}",
+        "method": "POST",
+        "path": "/mock/ocr/extract",
+        "timeoutMs": 3000,
+        "retry": { "attempts": 2, "backoffMs": 200 }
+      },
+      "requestMapping": [{ "from": "body.documentId", "to": "documentId" }],
+      "responseMapping": [
+        { "from": "body.extractedName", "to": "extractedName" },
+        { "from": "body.documentType", "to": "documentType" },
+        { "from": "body.confidence", "to": "ocrConfidence" }
+      ]
+    },
+    {
+      "name": "fraudCheck",
+      "type": "http",
+      "vendor": {
+        "baseUrl": "${SELF_BASE_URL}",
+        "method": "POST",
+        "path": "/mock/fraud/check",
+        "timeoutMs": 3000,
+        "retry": { "attempts": 2, "backoffMs": 200 }
+      },
+      "requestMapping": [{ "from": "body.documentId", "to": "documentId" }],
+      "responseMapping": [
+        { "from": "body.fraudScore", "to": "fraudScore" },
+        { "from": "body.riskLevel", "to": "riskLevel" }
+      ]
+    },
+    {
+      "name": "faceMatch",
+      "type": "http",
+      "vendor": {
+        "baseUrl": "${SELF_BASE_URL}",
+        "method": "POST",
+        "path": "/mock/face/match",
+        "timeoutMs": 3000,
+        "retry": { "attempts": 2, "backoffMs": 200 }
+      },
+      "requestMapping": [{ "from": "body.documentId", "to": "documentId" }],
+      "responseMapping": [
+        { "from": "body.matchScore", "to": "matchScore" },
+        { "from": "body.isMatch", "to": "isMatch" }
+      ]
+    }
+  ],
+  "response": {
+    "mapping": [
+      { "from": "steps.ocr.extractedName", "to": "name" },
+      { "from": "steps.ocr.documentType", "to": "documentType" },
+      { "from": "steps.ocr.ocrConfidence", "to": "ocrConfidence" },
+      { "from": "steps.fraudCheck.riskLevel", "to": "riskLevel" },
+      { "from": "steps.faceMatch.isMatch", "to": "faceMatchPassed" }
+    ]
+  }
+}
