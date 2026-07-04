@@ -27,7 +27,7 @@ export async function callVendor(
   payload: Record<string, unknown>,
 ): Promise<VendorCallResult> {
   const requestConfig: AxiosRequestConfig = {
-    baseURL: vendor.baseUrl,
+    baseURL: resolveEnvPlaceholders(vendor.baseUrl),
     url: vendor.path,
     method: vendor.method,
     timeout: vendor.timeoutMs ?? 5000,

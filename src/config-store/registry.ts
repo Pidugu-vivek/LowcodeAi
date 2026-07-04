@@ -1,5 +1,6 @@
 import { WorkflowConfig } from '../domain/workflowConfig';
 import { loadAllConfigs, saveConfig, deleteConfigFile } from './fileStore';
+import { validateWorkflowConfig } from '../validation/workflowConfigValidator';
 import { logger } from '../logging/logger';
 
 function registryKey(method: string, routePath: string): string {
@@ -14,6 +15,14 @@ class WorkflowRegistry {
     this.byKey.clear();
     this.byId.clear();
     for (const config of loadAllConfigs()) {
+      const result = validateWorkflowConfig(config);
+      if (!result.valid) {
+        logger.error(
+          { configId: (config as { id?: string }).id, errors: result.errors },
+          'Skipping invalid workflow config file at startup',
+        );
+        continue;
+      }
       this.register(config);
     }
     logger.info({ count: this.byId.size }, 'Loaded workflow configs into registry');

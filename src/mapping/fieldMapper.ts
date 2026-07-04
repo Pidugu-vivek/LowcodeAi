@@ -3,11 +3,11 @@ import { FieldMapping } from '../domain/workflowConfig';
 type Transform = (value: unknown) => unknown;
 
 const transforms: Record<string, Transform> = {
-  toUpperCase: (v) => (typeof v === 'string' ? v.toUpperCase() : v),
-  toLowerCase: (v) => (typeof v === 'string' ? v.toLowerCase() : v),
-  toString: (v) => (v === undefined || v === null ? v : String(v)),
-  toNumber: (v) => (v === undefined || v === null ? v : Number(v)),
-  toBoolean: (v) => Boolean(v),
+  toUpperCase: (v: unknown) => (typeof v === 'string' ? v.toUpperCase() : v),
+  toLowerCase: (v: unknown) => (typeof v === 'string' ? v.toLowerCase() : v),
+  toString: (v: unknown) => (v === undefined || v === null ? v : String(v)),
+  toNumber: (v: unknown) => (v === undefined || v === null ? v : Number(v)),
+  toBoolean: (v: unknown) => Boolean(v),
 };
 
 export function registerTransform(name: string, fn: Transform): void {
