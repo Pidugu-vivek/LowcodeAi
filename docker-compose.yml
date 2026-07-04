@@ -1,0 +1,13 @@
+services:
+  api-orchestrator:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      PORT: 3000
+      ADMIN_API_KEY: dev-admin-key
+      JWT_SECRET: dev-jwt-secret
+      LOG_LEVEL: info
+      NODE_ENV: production
+    volumes:
+      - ./config:/app/config
